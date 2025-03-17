@@ -2,7 +2,7 @@ package main;
 
 import javax.swing.JFrame;
 
-public class Main {
+public class Main {ss
 
     public static void main(String[] args) {
         

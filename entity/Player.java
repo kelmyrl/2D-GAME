@@ -1,17 +1,14 @@
 package entity;
 
-import java.awt.Graphics;
-
 import main.GamePanel;
 import main.KeyHandler;
-import main.UtilityTool;
 
+import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
 
 
 public class Player extends Entity {
@@ -45,7 +42,6 @@ public class Player extends Entity {
         getPlayerImage();
     }
     public void setDefaultValues() {
-
         worldX = gp.tileSize * 23;
         worldY = gp.tileSize * 21;
         speed = 4;
@@ -100,6 +96,11 @@ public class Player extends Entity {
             int npcIndex = gp.cChecker.checkEntity(this, gp.npc);
             interactNPC(npcIndex);
 
+            //CHECK MONSTER COLLISION
+            int monsterIndex = gp.cChecker.checkEntity(this, gp.monster);
+            contactMonster(monsterIndex);
+
+
             //CHECK EVENT
             gp.eHandler.checkEvent();
             
@@ -142,6 +143,15 @@ public class Player extends Entity {
                 standCounter= 0;
             }
         }
+
+        //This needs to be outside of key if statement
+        if (invincible == true) {
+            invincibleCounter++;
+            if(invincibleCounter > 60) {
+                invincible = false;
+                invincibleCounter = 0;
+            }
+        }
     }
     public void pickUpObject(int i) {
         if(i != 999) {
@@ -158,6 +168,17 @@ public class Player extends Entity {
             }
         }
         
+    }
+
+    public void contactMonster(int i) {
+        if (i != 999) {
+
+            
+            if (invincible == false) {
+                life -= 1;
+                invincible = true;
+            }
+        }
     }
 
     public void draw(Graphics2D g2){
@@ -202,8 +223,19 @@ public class Player extends Entity {
             break;
         }
 
+        if(invincible == true) {
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
+        }
+
         g2.drawImage(image, screenX, screenY, null);
 
 
+        //RESET ALPHA
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
+        
+        //DEBUG
+//      g2.setFont(new Font("Arial", Font.PLAIN, 24));
+//    g2.setColor(Color.white);
+ //       g2.drawString("invincible:" + invincibleCounter, 10, 400);
     }
 }

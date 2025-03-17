@@ -1,6 +1,8 @@
 package main;
 
 import entity.NPC_kelmy;
+import monster.MON_GreenSlime;
+
 
 //import object.OBJ_Key;
 //import object.OBJ_Chest;
@@ -17,7 +19,6 @@ public class AssetSetter {
 
     public void setObject() {
 
-
     }
     public void setNPC() {
 
@@ -27,4 +28,14 @@ public class AssetSetter {
 
     }
 
+    public void setMonster() {
+
+        gp.monster[0] = new MON_GreenSlime(gp);
+        gp.monster[0].worldX = gp.tileSize* 23;
+        gp.monster[0].worldY = gp.tileSize * 36;
+
+        gp.monster[1] = new MON_GreenSlime(gp);
+        gp.monster[1].worldX = gp.tileSize* 23;
+        gp.monster[1].worldY = gp.tileSize * 37;
+    }
 }
