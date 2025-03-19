@@ -2,6 +2,7 @@ package main;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -61,10 +62,7 @@ public class GamePanel extends JPanel implements Runnable {
     public final int playState = 1;
     public final int pauseState = 2;
     public final int dialogueState = 3;
-
-
-
-
+    public final int characterState = 4;
 
     public GamePanel() {
 
@@ -147,7 +145,12 @@ public class GamePanel extends JPanel implements Runnable {
             //MONSTER
             for(int i = 0; i < monster.length;i++) {
                 if(monster[i] != null) {
-                    monster[i].update();
+                    if(monster[i].alive == true && monster[i].dying == false) {
+                        monster[i].update();
+                    }
+                    if(monster[i].alive == false) {
+                        monster[i] = null;
+                    }
                 }
             }
 
@@ -165,7 +168,7 @@ public class GamePanel extends JPanel implements Runnable {
 
         //DEBUG
         long drawStart = 0;
-        if(keyH.checkDrawTime == true) {
+        if(keyH.showDebugText == true) {
             drawStart = System.nanoTime();
         }
         
@@ -216,9 +219,8 @@ public class GamePanel extends JPanel implements Runnable {
                 entityList.get(i).draw(g2);
             }
             // EMPTY ENTITY LIST
-            for(int i = 0; i < entityList.size(); i++) {
-                entityList.remove(i);
-            }
+            entityList.clear();
+            
       
             //UI
             ui.draw(g2);
@@ -226,12 +228,24 @@ public class GamePanel extends JPanel implements Runnable {
         }
 
         //DEBUG
-        if(keyH.checkDrawTime == true) {
+        if(keyH.showDebugText == true) {
             long drawEnd = System.nanoTime();
             long passed = drawEnd - drawStart;
+
+            g2.setFont(new Font("Arial",Font.PLAIN, 20));
             g2.setColor(Color.white);
-            g2.drawString("Draw Time: " + passed, 10 , 400);
-            System.out.println("Draw Time: "+ passed); 
+            int x = 10;
+            int y = 400;
+            int lineHeight = 20;
+
+
+            g2.drawString("WorldX " + player.worldX, x, y); y += lineHeight;
+            g2.drawString("WorldY " + player.worldY, x, y); y += lineHeight;
+            g2.drawString("Col " + (player.worldX + player.solidArea.x)/tileSize, x, y); y += lineHeight;
+            g2.drawString("Row " + (player.worldY + player.solidArea.y)/tileSize, x, y); y += lineHeight;
+
+            g2.drawString("Draw Time: " + passed, x , y);
+            
         }
         g2.dispose();
     }
