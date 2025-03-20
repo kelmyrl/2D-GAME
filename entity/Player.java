@@ -2,7 +2,9 @@ package entity;
 
 import main.GamePanel;
 import main.KeyHandler;
+import object.OBJ_Fireball;
 import object.OBJ_Key;
+import object.OBJ_Rock;
 import object.OBJ_Shield_Wood;
 import object.OBJ_Sword_Normal;
 
@@ -56,6 +58,9 @@ public class Player extends Entity {
         
         //PLAYER STATUS
         level = 1;
+        maxMana = 4;
+        mana = maxMana;
+        ammo = 10;
         strength = 1; // The more strength she has, the more damage she can deal
         dexterity = 1; //The more dexterity she has, the more damage she can block
         exp = 0;
@@ -63,6 +68,8 @@ public class Player extends Entity {
         coin = 0;
         currentWeapon = new OBJ_Sword_Normal(gp);
         currentShield = new OBJ_Shield_Wood(gp);
+        projectile = new OBJ_Fireball(gp);
+//        projectile = new OBJ_Rock(gp);
         attack = getAttack(); //The total attack value is decided by strength and weapon
         defense = getDefense(); // The total defense value is decided by dexterity and shield
         maxLife = 6;
@@ -210,6 +217,23 @@ public class Player extends Entity {
             }
         }
 
+        if(gp.keyH.shotKeyPressed == true && projectile.alive == false && shotAvialableCounter == 30 && projectile.haveResource(this) == true) {
+
+            //SET DEFAULT COORDINATES, DIRECTION AND USER
+            projectile.set(worldX, worldY, direction, true, this);
+
+            //SUBTRACT THE COST (MANa, AMMO ETC.)
+            projectile.subtractResource(this);
+
+            //ADD IT TO THE LIST
+            gp.projectileList.add(projectile);
+
+            shotAvialableCounter = 0;
+
+            gp.playSE(11);
+
+        }
+
         //This needs to be outside of key if statement
         if (invincible == true) {
             invincibleCounter++;
@@ -217,6 +241,16 @@ public class Player extends Entity {
                 invincible = false;
                 invincibleCounter = 0;
             }
+        }
+        if(shotAvialableCounter < 30) {
+            shotAvialableCounter++;
+
+        }
+        if(life > maxLife) {
+            life = maxLife;
+        }
+        if(mana > maxMana) {
+            mana = maxMana;
         }
     }
 
@@ -251,7 +285,7 @@ public class Player extends Entity {
 
             //Check monster collision with the updated worldX/Y and SolidArea
             int monsterIndex = gp.cChecker.checkEntity(this, gp.monster);
-            damageMonster(monsterIndex);
+            damageMonster(monsterIndex, attack);
 
             //After checking collision, restore the original data
             worldX = currentWorldX;
@@ -268,21 +302,31 @@ public class Player extends Entity {
     public void pickUpObject(int i) {
         if(i != 999) {
 
-            String text;
+            //PICKUP ONLY ITEMS
+            if(gp.obj[i].type == type_pickupOnly) {
 
-            if(inventory.size() != maxInventorySize) {
-
-                inventory.add(gp.obj[i]);
-                gp.playSE(1);
-                text = "Got a " + gp.obj[i].name + "!";
-
-
+                gp.obj[i].use(this);
+                gp.obj[i] = null;
             }
+
+            //INVENTORY ITEMS
             else {
-                text = "Inventory is full!";
+                String text;
+
+                if(inventory.size() != maxInventorySize) {
+    
+                    inventory.add(gp.obj[i]);
+                    gp.playSE(1);
+                    text = "Got a " + gp.obj[i].name + "!";
+    
+    
+                }
+                else {
+                    text = "Inventory is full!";
+                }
+                gp.ui.addMessage(text);
+                gp.obj[i] = null;
             }
-            gp.ui.addMessage(text);
-            gp.obj[i] = null;
         }
     }
 
@@ -298,12 +342,11 @@ public class Player extends Entity {
         }
         
     }
-
     public void contactMonster(int i) {
         if (i != 999) {
 
             
-            if (invincible == false) {
+            if (invincible == false && gp.monster[i].dying == false ) {
                 gp.playSE(7);
 
                 int damage = gp.monster[i].attack - defense;
@@ -316,7 +359,7 @@ public class Player extends Entity {
         }
     }
     
-    public void damageMonster(int i) {
+    public void damageMonster(int i, int attack) {
         if (i != 999) {
             if(gp.monster[i].invincible == false) {
 
