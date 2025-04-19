@@ -75,7 +75,19 @@ public class Player extends Entity {
         maxLife = 6;
         life = maxLife;
     }
+    public void setDefaultPositions() {
+        worldX = gp.tileSize * 23;
+        worldY = gp.tileSize * 21;
+        direction = "down";
+    }
+    public void restoreLifeAndMana() {
+        life = maxLife;
+        mana = maxMana;
+        invincible = false;
+    }
     public void setItem() {
+
+        inventory.clear();
         inventory.add(currentWeapon);
         inventory.add(currentShield);
         inventory.add(new OBJ_Key(gp));
@@ -165,6 +177,10 @@ public class Player extends Entity {
             int monsterIndex = gp.cChecker.checkEntity(this, gp.monster);
             contactMonster(monsterIndex);
 
+            //CHECK INTERACTIVE TILE COLLISION
+            int iTileIndex = gp.cChecker.checkEntity(this, gp.iTile);
+
+
 
             //CHECK EVENT
             gp.eHandler.checkEvent();
@@ -252,6 +268,10 @@ public class Player extends Entity {
         if(mana > maxMana) {
             mana = maxMana;
         }
+        if(life <= 0) {
+            gp.gameState = gp.gameOverState;
+            gp.playSE(13);
+        }
     }
 
     public void attacking() {
@@ -286,6 +306,10 @@ public class Player extends Entity {
             //Check monster collision with the updated worldX/Y and SolidArea
             int monsterIndex = gp.cChecker.checkEntity(this, gp.monster);
             damageMonster(monsterIndex, attack);
+
+            //
+            int iTileIndex = gp.cChecker.checkEntity(this, gp.iTile);
+            damageInteractiveTile(iTileIndex);
 
             //After checking collision, restore the original data
             worldX = currentWorldX;
@@ -382,6 +406,23 @@ public class Player extends Entity {
                     checkLevelUp();
                 }
             }
+        }
+    }
+    public void damageInteractiveTile (int i) {
+
+        if(i != 999 && gp.iTile[i].destructible == true && gp.iTile[i].isCorrectItem(this) == true && gp.iTile[i].invincible == false) {
+
+            gp.iTile[i].playSE();
+            gp.iTile[i].life--;
+            gp.iTile[i].invincible = true;
+
+            // Generate Particle
+            generateParticle(gp.iTile[i], gp.iTile[i]);
+
+            if(gp.iTile[i].life == 0) {
+                gp.iTile[i] = gp.iTile[i].getDestroyedForm();
+            }
+
         }
     }
     public void checkLevelUp() {
